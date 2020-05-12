@@ -5,11 +5,13 @@ from tensorflow.keras.layers import Input, Conv2D, LeakyReLU, MaxPooling2D, Dens
 
 class YOLONet(object):
 
-    def __init__(self):
+    def __init__(self, config=None):
 
         self._build_network()
 
-    def _build_network(self, leaky_alpha=0.1):
+    def _build_network(self, cell_size=7, num_bbox_per_cell=2, num_classes=20, leaky_alpha=0.1):
+        num_feature_channel = num_bbox_per_cell*5 + num_classes
+
         self._network = Sequential([
             Input((448, 448, 3), name='inputs'),
             # ---------------------------------------- block01
@@ -49,8 +51,8 @@ class YOLONet(object):
             # ---------------------------------------- block07
             Flatten(name='block07/flatten'),
             Dense(4096, name='block07/fc01'), LeakyReLU(leaky_alpha, name='block07/leaky_relu01'),
-            Dense(1470, name='block07/fc02'), LeakyReLU(leaky_alpha, name='block07/leaky_relu02'),
-            Reshape((7, 7, 30), name='block07/reshape')
+            Dense(cell_size*cell_size*num_feature_channel, name='block07/fc02'), LeakyReLU(leaky_alpha, name='block07/leaky_relu02'),
+            Reshape((cell_size, cell_size, num_feature_channel), name='block07/reshape')
         ], name='YOLONet')
 
     def __call__(self, inputs):
