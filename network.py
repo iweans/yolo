@@ -1,5 +1,5 @@
 from tensorflow.keras.models import Sequential
-from tensorflow.keras.layers import Input, Conv2D, LeakyReLU, MaxPooling2D, Dense, Flatten, Reshape
+from tensorflow.keras.layers import Input, Conv2D, LeakyReLU, MaxPooling2D, Dense, Flatten, Reshape, Dropout
 # --------------------------------------------------
 
 
@@ -9,7 +9,7 @@ class YOLONet(object):
 
         self._build_network()
 
-    def _build_network(self, cell_size=7, num_bbox_per_cell=2, num_classes=20, leaky_alpha=0.1):
+    def _build_network(self, cell_size=7, num_bbox_per_cell=2, num_classes=20, leaky_alpha=0.1, dropout_rate=0.5):
         num_feature_channel = num_bbox_per_cell*5 + num_classes
 
         self._network = Sequential([
@@ -51,8 +51,8 @@ class YOLONet(object):
             # ---------------------------------------- block07
             Flatten(name='block07/flatten'),
             Dense(4096, name='block07/fc01'), LeakyReLU(leaky_alpha, name='block07/leaky_relu01'),
-            Dense(cell_size*cell_size*num_feature_channel, name='block07/fc02'), LeakyReLU(leaky_alpha, name='block07/leaky_relu02'),
-            Reshape((cell_size, cell_size, num_feature_channel), name='block07/reshape')
+            Dropout(dropout_rate, name='block07/dropout'),
+            Dense(cell_size*cell_size*num_feature_channel, name='outputs'),
         ], name='YOLONet')
 
     def __call__(self, inputs):
